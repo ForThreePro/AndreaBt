@@ -8,7 +8,7 @@ import axios from 'axios'
 
 global.owner = [
   [ '51927174369', 'Barboza OFC 🌃', true ],
-  [ '573155227977', 'Jota 🐼', true ]
+  [ '573215829404', 'Jota 🐼', true ]
 ]
 
 global.mods = []
