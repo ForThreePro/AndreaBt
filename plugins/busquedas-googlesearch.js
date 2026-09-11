@@ -1,12 +1,32 @@
 import ytSearch from 'yt-search'
 
-let handler = async (m, { conn, text }) => {
+let handler = async (m, { conn, text, usedPrefix }) => {
     let user = `@${m.sender.split('@')[0]}`
     let groupName = m.isGroup? (await conn.groupMetadata(m.chat)).subject : 'Privado'
 
-    if (!text) return m.reply(`🐱 𓆩 ***𝗚𝗔𝗥𝗙𝗜𝗘𝗟𝗗 𝗕𝗢𝗧 𝗢𝗙𝗜𝗖𝗜𝗔𝗟*** 𓆪 🐱\n\n✨ *¿Qué quieres buscar?*\n📌 *Ejemplo:* ${m.prefix}google garfield comiendo lasaña`)
+    if (!text) {
+        await m.react('❌')
+        return m.reply(`💗 𓆩 ***𝗕𝗨𝗦𝗖𝗔𝗗𝗢𝗥 𝗦𝗧𝗥𝗔𝗪𝗕𝗘𝗥𝗥𝗬*** 𓆪 💗
+
+.⃟𖥔 ݁. 𖦹˙— \`\`USO\`\` —˙𖦹.📌꒷
+
+── *📝 INSTRUCCIONES* ╏
+🍓 ➛ ${usedPrefix}google <busqueda>
+☁️ ➛ *Ejemplo:* ${usedPrefix}google bad bunny
+
+━━━━━━━━━━━`)
+    }
 
     await m.react('🔍')
+    await m.reply(`💗 𓆩 ***𝗕𝗨𝗦𝗖𝗔𝗡𝗗𝗢*** 𓆪 💗
+
+.⃟𖥔 ݁. 𖦹˙— \`\`PROCESANDO\`\` —˙𖦹.⚙️꒷
+
+── *📊 ESTADO* ╏
+🔍 ➛ Buscando en YouTube...
+📋 ➛ Obteniendo top 5...
+
+━━━━━━━━━━━`)
 
     try {
         let search = await ytSearch(text)
@@ -14,42 +34,69 @@ let handler = async (m, { conn, text }) => {
 
         if (!results.length) {
             await m.react('❌')
-            return m.reply('🍕 *No encontré resultados.*')
+            return m.reply(`💗 𓆩 ***𝗦𝗜𝗡 𝗥𝗘𝗦𝗨𝗟𝗧𝗔𝗗𝗢𝗦*** 𓆪 💗
+
+.⃟𖥔 ݁. 𖦹˙— \`\`ERROR\`\` —˙𖦹.❌꒷
+
+── *📝 AVISO* ╏
+❌ ➛ No encontré nada con: *${text}*
+
+━━━━━━━━━━━`)
         }
 
-        let txt = `🐱 𓆩 𝗕𝗨𝗦𝗖𝗔𝗗𝗢𝗥 𝗚𝗔𝗥𝗙𝗜𝗘𝗟𝗗 𓆪 🐱
+        let txt = `💗 𓆩 ***𝗥𝗘𝗦𝗨𝗟𝗧𝗔𝗗𝗢𝗦 𝗗𝗘 𝗕𝗨𝗦𝗤𝗨𝗘𝗗𝗔*** 𓆪 💗
 
-.⃟𖥔 ݁. 𖦹˙— \`\`RESULTADOS\`\` —˙𖦹.🍕꒷
+.⃟𖥔 ݁. 𖦹˙— \`\`YOUTUBE\`\` —˙𖦹.🔍꒷
 
-🔎 *Buscando:* ${text}
+🍓 *Buscando:* ${text}
 
 ${results.map((v, i) => {
             return `*${i + 1}.* *${v.title}*
-🕒 *Duración:* ${v.timestamp}
-👁️ *Vistas:* ${v.views}
+☁️ *Duración:* ${v.timestamp}
+📊 *Vistas:* ${formatViews(v.views)}
 👤 *Canal:* ${v.author.name}
 🔗 ${v.url}`
         }).join('\n\n')}
 
+━━━━━━━━━━━
 👤 *Solicitado por:* ${user}
 🏷 *Grupo:* ${groupName}
 
-━━━━━━━━━━━━━━
-*Powered by*: ***Garfield Bot Oficial*** 🍕
-*Tip:* Usa .ytmp4 o .ytmp3 + el link`
+💗 *Tip:* Usa ${usedPrefix}play <link> para descargar el audio`
 
-        await conn.reply(m.chat, txt, m, { mentions: [m.sender] })
+        // Enviar con thumbnail del primer video
+        await conn.sendMessage(m.chat, {
+            image: { url: results[0].thumbnail },
+            caption: txt,
+            mentions: [m.sender]
+        })
+
         await m.react('✅')
 
     } catch (e) {
         console.error(e)
         await m.react('❌')
-        m.reply('🍕 *Error:* No se pudo realizar la búsqueda.')
+        m.reply(`💗 𓆩 ***𝗘𝗥𝗥𝗢𝗥*** 𓆪 💗
+
+.⃟𖥔 ݁. 𖦹˙— \`\`FALLO\`\` —˙𖦹.❌꒷
+
+── *📝 AVISO* ╏
+❌ ➛ ${e.message}
+
+━━━━━━━━━━━`)
     }
+}
+
+function formatViews(views) {
+    if (views >= 1_000_000_000) return `${(views / 1_000_000_000).toFixed(1)}B`
+    if (views >= 1_000_000) return `${(views / 1_000_000).toFixed(1)}M`
+    if (views >= 1_000) return `${(views / 1_000).toFixed(1)}k`
+    return views.toString()
 }
 
 handler.help = ['google <busqueda>']
 handler.tags = ['search']
 handler.command = /^google$/i
+handler.limit = true
 
 export default handler
